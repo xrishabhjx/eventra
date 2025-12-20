@@ -1,17 +1,9 @@
 "use client";
-
 import { useState } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export default function AIEventCreator({ onEventGenerated }) {
@@ -20,11 +12,7 @@ export default function AIEventCreator({ onEventGenerated }) {
   const [loading, setLoading] = useState(false);
 
   const generateEvent = async () => {
-    if (!prompt.trim()) {
-      toast.error("Please describe your event");
-      return;
-    }
-
+    if (!prompt.trim()) return toast.error("Please describe your event");
     setLoading(true);
     try {
       const response = await fetch("/api/generate-event", {
@@ -33,14 +21,17 @@ export default function AIEventCreator({ onEventGenerated }) {
         body: JSON.stringify({ prompt }),
       });
 
+      if (!response.ok) throw new Error("Failed to generate");
+      
       const data = await response.json();
-      onEventGenerated(data);
-      toast.success("Event details generated! Review and customize below.");
+      onEventGenerated(data); // Sends data to parent
+      
+      toast.success("AI generated your event details!");
       setIsOpen(false);
       setPrompt("");
     } catch (error) {
-      toast.error("Failed to generate event. Please try again.");
-      console.error(error);
+      toast.error("AI Generation failed. Check console for details.");
+      console.error("AI_ERROR:", error);
     } finally {
       setLoading(false);
     }
@@ -50,56 +41,25 @@ export default function AIEventCreator({ onEventGenerated }) {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2">
-          <Sparkles className="w-4 h-4" />
-          Generate with AI
+          <Sparkles className="w-4 h-4" /> Generate with AI
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-500" />
-            AI Event Creator
-          </DialogTitle>
-          <DialogDescription>
-            Describe your event idea and let AI create the details for you
-          </DialogDescription>
+          <DialogTitle>AI Event Creator</DialogTitle>
+          <DialogDescription>Describe your event idea below.</DialogDescription>
         </DialogHeader>
-
         <div className="space-y-4">
-          <Textarea
-            value={prompt}
+          <Textarea 
+            value={prompt} 
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Example: A tech meetup about React 19 for developers in Bangalore. It should cover new features like Actions and use hook improvements..."
+            placeholder="e.g. A 2-day workshop on Next.js..."
             rows={6}
-            className="resize-none"
           />
-
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={generateEvent}
-              disabled={loading || !prompt.trim()}
-              className="flex-1 gap-2"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4" />
-                  Generate
-                </>
-              )}
-            </Button>
-          </div>
+          <Button onClick={generateEvent} disabled={loading} className="w-full">
+            {loading ? <Loader2 className="animate-spin mr-2" /> : <Sparkles className="mr-2" />}
+            Generate
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
