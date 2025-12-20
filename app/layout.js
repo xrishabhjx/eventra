@@ -8,9 +8,21 @@ import { ConvexClientProvider } from "@/components/convex-client-provider";
 import { Toaster } from "sonner";
 
 export const metadata = {
-  title: "Spott - Delightful Events Start Here",
+  title: "Eventra - Delightful Events Start Here",
   description: "Discover and create amazing events",
 };
+
+// Suppress extension-related unhandled promise rejection
+if (typeof window !== "undefined") {
+  window.addEventListener("unhandledrejection", (event) => {
+    if (
+      event.reason?.message?.includes("message channel closed") ||
+      event.reason?.message?.includes("asynchronous response")
+    ) {
+      event.preventDefault();
+    }
+  });
+}
 
 export default function RootLayout({ children }) {
   return (

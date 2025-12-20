@@ -114,6 +114,10 @@ export const deleteEvent = mutation({
   handler: async (ctx, args) => {
     const user = await ctx.runQuery(internal.users.getCurrentUser);
 
+    if (!user) {
+      throw new Error("User not found or not authenticated");
+    }
+
     const event = await ctx.db.get(args.eventId);
     if (!event) {
       throw new Error("Event not found");
